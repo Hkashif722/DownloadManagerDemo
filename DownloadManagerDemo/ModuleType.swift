@@ -106,9 +106,67 @@ final class Module: DownloadableItem {
     }
 }
 
+// MARK: - Module Codable Conformance
+extension Module: Codable {
+    enum CodingKeys: String, CodingKey {
+        case id, moduleId, title, moduleDescription, mimeType, path, zipPath
+        case moduleTypeRaw, duration, youtubeVideoId, isSecuredContent
+        case downloadURL, localFileURL, downloadStateRaw, downloadProgress
+        case fileSize, parentModelId
+    }
+    
+    convenience init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        self.init(
+            id: try container.decode(UUID.self, forKey: .id),
+            moduleId: try container.decode(Int.self, forKey: .moduleId),
+            title: try container.decode(String.self, forKey: .title),
+            description: try container.decode(String.self, forKey: .moduleDescription),
+            mimeType: try container.decodeIfPresent(String.self, forKey: .mimeType),
+            path: try container.decode(String.self, forKey: .path),
+            zipPath: try container.decodeIfPresent(String.self, forKey: .zipPath),
+            moduleType: ModuleType(rawValue: try container.decode(String.self, forKey: .moduleTypeRaw)) ?? .document,
+            duration: try container.decode(Double.self, forKey: .duration),
+            youtubeVideoId: try container.decodeIfPresent(String.self, forKey: .youtubeVideoId),
+            isSecuredContent: try container.decode(Bool.self, forKey: .isSecuredContent),
+            downloadURL: try container.decode(URL.self, forKey: .downloadURL),
+            parentModelId: try container.decodeIfPresent(UUID.self, forKey: .parentModelId)
+        )
+        
+        // Set properties that aren't part of init
+        self.localFileURL = try container.decodeIfPresent(URL.self, forKey: .localFileURL)
+        self.downloadStateRaw = try container.decode(String.self, forKey: .downloadStateRaw)
+        self.downloadProgress = try container.decode(Double.self, forKey: .downloadProgress)
+        self.fileSize = try container.decodeIfPresent(Int64.self, forKey: .fileSize)
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        
+        try container.encode(id, forKey: .id)
+        try container.encode(moduleId, forKey: .moduleId)
+        try container.encode(title, forKey: .title)
+        try container.encode(moduleDescription, forKey: .moduleDescription)
+        try container.encodeIfPresent(mimeType, forKey: .mimeType)
+        try container.encode(path, forKey: .path)
+        try container.encodeIfPresent(zipPath, forKey: .zipPath)
+        try container.encode(moduleTypeRaw, forKey: .moduleTypeRaw)
+        try container.encode(duration, forKey: .duration)
+        try container.encodeIfPresent(youtubeVideoId, forKey: .youtubeVideoId)
+        try container.encode(isSecuredContent, forKey: .isSecuredContent)
+        try container.encode(downloadURL, forKey: .downloadURL)
+        try container.encodeIfPresent(localFileURL, forKey: .localFileURL)
+        try container.encode(downloadStateRaw, forKey: .downloadStateRaw)
+        try container.encode(downloadProgress, forKey: .downloadProgress)
+        try container.encodeIfPresent(fileSize, forKey: .fileSize)
+        try container.encodeIfPresent(parentModelId, forKey: .parentModelId)
+    }
+}
+
 // MARK: - Course Model
 @Model
-final class Course: DownloadableModel {
+final class Course: DownloadableModel, @unchecked Sendable  {
     typealias ItemType = Module
     
     @Attribute(.unique) var id: UUID
@@ -124,7 +182,7 @@ final class Course: DownloadableModel {
     var courseRating: Double
     var metadataJSON: String? // Store metadata as JSON string
     
-    @Relationship(deleteRule: .cascade, inverse: \Module.parentModelId)
+    // Use a simple array without inverse relationship to avoid complexity
     var modules: [Module] = []
     
     var items: [Module] {
@@ -180,23 +238,84 @@ final class Course: DownloadableModel {
     }
 }
 
+// MARK: - Course Codable Conformance
+extension Course: Codable {
+    enum CodingKeys: String, CodingKey {
+        case id, courseId, title, courseType, courseCode, courseDescription
+        case thumbnailPath, numberOfModules, courseFee, adminName, courseRating
+        case metadataJSON, modules
+    }
+    
+    convenience init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        self.init(
+            id: try container.decode(UUID.self, forKey: .id),
+            courseId: try container.decode(Int.self, forKey: .courseId),
+            title: try container.decode(String.self, forKey: .title),
+            courseType: try container.decode(String.self, forKey: .courseType),
+            courseCode: try container.decode(String.self, forKey: .courseCode),
+            description: try container.decode(String.self, forKey: .courseDescription),
+            thumbnailPath: try container.decodeIfPresent(String.self, forKey: .thumbnailPath),
+            numberOfModules: try container.decode(Int.self, forKey: .numberOfModules),
+            courseFee: try container.decode(Double.self, forKey: .courseFee),
+            adminName: try container.decode(String.self, forKey: .adminName),
+            courseRating: try container.decode(Double.self, forKey: .courseRating)
+        )
+        
+        // Set properties that aren't part of init
+        self.metadataJSON = try container.decodeIfPresent(String.self, forKey: .metadataJSON)
+        self.modules = try container.decode([Module].self, forKey: .modules)
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        
+        try container.encode(id, forKey: .id)
+        try container.encode(courseId, forKey: .courseId)
+        try container.encode(title, forKey: .title)
+        try container.encode(courseType, forKey: .courseType)
+        try container.encode(courseCode, forKey: .courseCode)
+        try container.encode(courseDescription, forKey: .courseDescription)
+        try container.encodeIfPresent(thumbnailPath, forKey: .thumbnailPath)
+        try container.encode(numberOfModules, forKey: .numberOfModules)
+        try container.encode(courseFee, forKey: .courseFee)
+        try container.encode(adminName, forKey: .adminName)
+        try container.encode(courseRating, forKey: .courseRating)
+        try container.encodeIfPresent(metadataJSON, forKey: .metadataJSON)
+        try container.encode(modules, forKey: .modules)
+    }
+}
+
 // MARK: - SwiftData Storage Implementation
-actor SwiftDataDownloadStorage: DownloadStorageProtocol {
+@MainActor
+final class SwiftDataDownloadStorage: DownloadStorageProtocol,  @unchecked Sendable  {
     typealias Model = Course
     typealias Item = Module
     
     private let modelContainer: ModelContainer
     private let modelContext: ModelContext
     
+    init(modelContainer: ModelContainer) {
+        self.modelContainer = modelContainer
+        self.modelContext = modelContainer.mainContext
+    }
+    
+    // Alternative init for standalone usage
     init() throws {
         let schema = Schema([Course.self, Module.self])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
         self.modelContainer = try ModelContainer(for: schema, configurations: [modelConfiguration])
-        self.modelContext = ModelContext(modelContainer)
-        self.modelContext.autosaveEnabled = true
+        self.modelContext = modelContainer.mainContext
     }
     
     func saveModel(_ model: Course) async throws {
+        // Insert all modules first
+        for module in model.modules {
+            modelContext.insert(module)
+        }
+        
+        // Then insert the course
         modelContext.insert(model)
         try modelContext.save()
     }
@@ -214,13 +333,20 @@ actor SwiftDataDownloadStorage: DownloadStorageProtocol {
     }
     
     func deleteModel(_ model: Course) async throws {
+        // Delete all associated modules first
+        for module in model.modules {
+            modelContext.delete(module)
+        }
         modelContext.delete(model)
         try modelContext.save()
     }
     
     func saveItem(_ item: Module) async throws {
-        modelContext.insert(item)
-        try modelContext.save()
+        // Check if item already exists
+       
+            modelContext.insert(item)
+            try modelContext.save()
+        
     }
     
     func fetchItem(by id: UUID) async throws -> Module? {
@@ -239,6 +365,13 @@ actor SwiftDataDownloadStorage: DownloadStorageProtocol {
     
     func updateItem(_ item: Module) async throws {
         // SwiftData automatically tracks changes
+        // Just ensure the item is registered with the context
+        if let existingItem = modelContext.model(for: item.id) as? Module {
+            existingItem.downloadState = item.downloadState
+            existingItem.downloadProgress = item.downloadProgress
+            existingItem.localFileURL = item.localFileURL
+            existingItem.fileSize = item.fileSize
+        }
         try modelContext.save()
     }
     

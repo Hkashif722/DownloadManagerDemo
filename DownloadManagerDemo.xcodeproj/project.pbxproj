@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		AE1E2DAC2DE4B691005DE294 /* DownloadManager in Frameworks */ = {isa = PBXBuildFile; productRef = AE1E2DAB2DE4B691005DE294 /* DownloadManager */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		AE1E2D8E2DE4B518005DE294 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -27,6 +31,7 @@
 		AE1E2D7B2DE4B515005DE294 /* DownloadManagerDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DownloadManagerDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AE1E2D8D2DE4B518005DE294 /* DownloadManagerDemoTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DownloadManagerDemoTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		AE1E2D972DE4B518005DE294 /* DownloadManagerDemoUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DownloadManagerDemoUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		AE1E2DAF2DE569E2005DE294 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -52,6 +57,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AE1E2DAC2DE4B691005DE294 /* DownloadManager in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -75,6 +81,7 @@
 		AE1E2D722DE4B514005DE294 = {
 			isa = PBXGroup;
 			children = (
+				AE1E2DAF2DE569E2005DE294 /* Info.plist */,
 				AE1E2D7D2DE4B515005DE294 /* DownloadManagerDemo */,
 				AE1E2D902DE4B518005DE294 /* DownloadManagerDemoTests */,
 				AE1E2D9A2DE4B518005DE294 /* DownloadManagerDemoUITests */,
@@ -112,6 +119,7 @@
 			);
 			name = DownloadManagerDemo;
 			packageProductDependencies = (
+				AE1E2DAB2DE4B691005DE294 /* DownloadManager */,
 			);
 			productName = DownloadManagerDemo;
 			productReference = AE1E2D7B2DE4B515005DE294 /* DownloadManagerDemo.app */;
@@ -195,6 +203,9 @@
 			);
 			mainGroup = AE1E2D722DE4B514005DE294;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				AE1E2DAA2DE4B690005DE294 /* XCRemoteSwiftPackageReference "dowloadManager" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = AE1E2D7C2DE4B515005DE294 /* Products */;
 			projectDirPath = "";
@@ -552,6 +563,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		AE1E2DAA2DE4B690005DE294 /* XCRemoteSwiftPackageReference "dowloadManager" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Hkashif722/dowloadManager";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		AE1E2DAB2DE4B691005DE294 /* DownloadManager */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AE1E2DAA2DE4B690005DE294 /* XCRemoteSwiftPackageReference "dowloadManager" */;
+			productName = DownloadManager;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = AE1E2D732DE4B514005DE294 /* Project object */;
 }

@@ -1,0 +1,15 @@
+{
+  "originHash" : "cc1a3740d7e44dec779051f14a6ad6b53a3c2fa53fc966451355b33c821a5643",
+  "pins" : [
+    {
+      "identity" : "dowloadmanager",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Hkashif722/dowloadManager",
+      "state" : {
+        "branch" : "main",
+        "revision" : "40ccea7a5c3b0082d0c7197729b426171500427e"
+      }
+    }
+  ],
+  "version" : 3
+}
