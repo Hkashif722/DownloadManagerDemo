@@ -22,6 +22,9 @@ struct DownloadManagerDemoApp: App {
             let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
             container = try ModelContainer(for: schema, configurations: [modelConfiguration])
         } catch {
+            print("Failed to create ModelContainer. Detailed Error: \(error)")
+            print("Localized Description: \(error.localizedDescription)")
+            // You can also try String(describing: error) for more raw details
             fatalError("Failed to create ModelContainer: \(error)")
         }
     }

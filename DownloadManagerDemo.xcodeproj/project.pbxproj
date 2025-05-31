@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		AE1E2DAC2DE4B691005DE294 /* DownloadManager in Frameworks */ = {isa = PBXBuildFile; productRef = AE1E2DAB2DE4B691005DE294 /* DownloadManager */; };
+		AE9DD99A2DE9EDC5005F2FD5 /* DownloadManager in Frameworks */ = {isa = PBXBuildFile; productRef = AE9DD9992DE9EDC5005F2FD5 /* DownloadManager */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -57,7 +57,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AE1E2DAC2DE4B691005DE294 /* DownloadManager in Frameworks */,
+				AE9DD99A2DE9EDC5005F2FD5 /* DownloadManager in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -119,7 +119,7 @@
 			);
 			name = DownloadManagerDemo;
 			packageProductDependencies = (
-				AE1E2DAB2DE4B691005DE294 /* DownloadManager */,
+				AE9DD9992DE9EDC5005F2FD5 /* DownloadManager */,
 			);
 			productName = DownloadManagerDemo;
 			productReference = AE1E2D7B2DE4B515005DE294 /* DownloadManagerDemo.app */;
@@ -204,7 +204,7 @@
 			mainGroup = AE1E2D722DE4B514005DE294;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				AE1E2DAA2DE4B690005DE294 /* XCRemoteSwiftPackageReference "dowloadManager" */,
+				AE9DD9982DE9EDC5005F2FD5 /* XCRemoteSwiftPackageReference "dowloadManager" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = AE1E2D7C2DE4B515005DE294 /* Products */;
@@ -565,20 +565,20 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		AE1E2DAA2DE4B690005DE294 /* XCRemoteSwiftPackageReference "dowloadManager" */ = {
+		AE9DD9982DE9EDC5005F2FD5 /* XCRemoteSwiftPackageReference "dowloadManager" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/Hkashif722/dowloadManager";
+			repositoryURL = /Users/kashifhussain/Desktop/DownloadPackageManeger/dowloadManager;
 			requirement = {
-				branch = main;
+				branch = development;
 				kind = branch;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		AE1E2DAB2DE4B691005DE294 /* DownloadManager */ = {
+		AE9DD9992DE9EDC5005F2FD5 /* DownloadManager */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = AE1E2DAA2DE4B690005DE294 /* XCRemoteSwiftPackageReference "dowloadManager" */;
+			package = AE9DD9982DE9EDC5005F2FD5 /* XCRemoteSwiftPackageReference "dowloadManager" */;
 			productName = DownloadManager;
 		};
 /* End XCSwiftPackageProductDependency section */

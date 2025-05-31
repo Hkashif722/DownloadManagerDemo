@@ -1,13 +1,13 @@
 {
-  "originHash" : "cc1a3740d7e44dec779051f14a6ad6b53a3c2fa53fc966451355b33c821a5643",
+  "originHash" : "c572eca7739c574b0dfb25bfe15e043ff34f6d288622e220670872325124f6af",
   "pins" : [
     {
       "identity" : "dowloadmanager",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/Hkashif722/dowloadManager",
+      "kind" : "localSourceControl",
+      "location" : "/Users/kashifhussain/Desktop/DownloadPackageManeger/dowloadManager",
       "state" : {
-        "branch" : "main",
-        "revision" : "40ccea7a5c3b0082d0c7197729b426171500427e"
+        "branch" : "development",
+        "revision" : "40f9edb25e2a0e8c0ab1fdb34601265f163b60fa"
       }
     }
   ],
