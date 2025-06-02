@@ -1,8 +1,8 @@
 //
-//  ContentView.swift
+//  ContentView.swift (Updated)
 //  DownloadManagerDemo
 //
-//  Created by Kashif Hussain on 26/05/25.
+//  Fixed version with centralized download management
 //
 
 import SwiftUI
@@ -13,6 +13,7 @@ struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var courses: [Course]
     @StateObject private var viewModel = DownloadViewModel()
+    @StateObject private var centralManager = CentralizedDownloadManager.shared
     
     var body: some View {
         TabView {
@@ -30,85 +31,31 @@ struct ContentView: View {
                     Text("Downloaded")
                 }
             
-            // Online Modules Tab (NEW)
+            // Online Modules Tab (Fixed)
             OnlineModuleDemoView()
                 .tabItem {
-                    Image(systemName: "globe.badge.chevron.down")
+                    Image(systemName: "globe.americas.fill")
                     Text("Online Modules")
                 }
         }
         .task {
             await viewModel.setupDownloadManager(modelContext: modelContext)
         }
+        .environmentObject(centralManager) // Provide central manager to child views
     }
 }
 
-// MARK: - All Courses View
-struct AllCoursesView: View {
-    let courses: [Course]
-    @ObservedObject var viewModel: DownloadViewModel
-    let modelContext: ModelContext
-    
-    var body: some View {
-        NavigationStack {
-            List {
-                if courses.isEmpty {
-                    EmptyStateView(viewModel: viewModel, modelContext: modelContext)
-                } else {
-                    ForEach(courses) { course in
-                        CourseRowView(course: course, viewModel: viewModel)
-                    }
-                    .onDelete(perform: deleteCourses)
-                }
-            }
-            .navigationTitle("All Courses")
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Menu {
-                        Button("Add Demo Course") {
-                            viewModel.addDemoCourse(modelContext: modelContext)
-                        }
-                        
-                        Button("Add Multiple Demo Courses") {
-                            viewModel.addMultipleDemoCourses(modelContext: modelContext)
-                        }
-                    } label: {
-                        Image(systemName: "plus.circle.fill")
-                    }
-                }
-                
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Clear All") {
-                        Task {
-                            await viewModel.clearAllDownloads()
-                        }
-                    }
-                    .foregroundColor(.red)
-                }
-            }
-        }
-    }
-    
-    private func deleteCourses(offsets: IndexSet) {
-        withAnimation {
-            for index in offsets {
-                modelContext.delete(courses[index])
-            }
-        }
-    }
-}
-
-// MARK: - Downloaded Courses View
+// MARK: - Updated Downloaded Courses View
 struct DownloadedCoursesView: View {
     let courses: [Course]
     @ObservedObject var viewModel: DownloadViewModel
+    @EnvironmentObject var centralManager: CentralizedDownloadManager
     
     // Filter courses that have at least one downloaded module
     var downloadedCourses: [Course] {
         courses.filter { course in
             course.modules.contains { module in
-                let state = viewModel.downloadStates[module.id] ?? .notDownloaded
-                return state == .downloaded
+                centralManager.isModuleDownloaded(module.id)
             }
         }
     }
@@ -140,38 +87,17 @@ struct DownloadedCoursesView: View {
     }
 }
 
-// MARK: - Downloaded Empty State
-struct DownloadedEmptyStateView: View {
-    var body: some View {
-        VStack(spacing: 20) {
-            Image(systemName: "arrow.down.circle.dotted")
-                .font(.system(size: 60))
-                .foregroundColor(.gray)
-            Text("No Downloaded Courses")
-                .font(.title2)
-                .foregroundColor(.secondary)
-            Text("Download modules from the 'All Courses' tab to see them here")
-                .font(.caption)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .listRowBackground(Color.clear)
-    }
-}
-
-// MARK: - Downloaded Course Row View
+// MARK: - Updated Downloaded Course Row View
 struct DownloadedCourseRowView: View {
     let course: Course
     @ObservedObject var viewModel: DownloadViewModel
+    @EnvironmentObject var centralManager: CentralizedDownloadManager
     @State private var isExpanded = false
     
     // Filter only downloaded modules
     var downloadedModules: [Module] {
         course.modules.filter { module in
-            let state = viewModel.downloadStates[module.id] ?? .notDownloaded
-            return state == .downloaded
+            centralManager.isModuleDownloaded(module.id)
         }
     }
     
@@ -232,162 +158,18 @@ struct DownloadedCourseRowView: View {
     }
 }
 
-// MARK: - Downloaded Module Row View
-struct DownloadedModuleRowView: View {
-    let module: Module
-    @ObservedObject var viewModel: DownloadViewModel
-    @State private var showingPlayer = false
-    
-    var body: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(module.title)
-                    .font(.subheadline)
-                
-                HStack {
-                    Image(systemName: iconForModuleType(module.downloadType))
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    
-                    Text(module.downloadType.rawValue)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    
-                    if let fileSize = module.fileSize {
-                        Text("• \(formatFileSize(fileSize))")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                    
-                    Spacer()
-                    
-                    // Downloaded timestamp (if available)
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(.green)
-                        .font(.caption)
-                }
-            }
-            
-            Spacer()
-            
-            // Action buttons for downloaded module
-            HStack(spacing: 12) {
-                // View/Open button
-                Button {
-                    showingPlayer = true
-                } label: {
-                    Image(systemName: "eye.fill")
-                        .foregroundColor(.blue)
-                }
-                .buttonStyle(BorderlessButtonStyle())
-                
-                // Delete button
-                Button {
-                    Task {
-                        await viewModel.deleteDownload(itemId: module.id)
-                    }
-                } label: {
-                    Image(systemName: "trash.circle.fill")
-                        .foregroundColor(.red)
-                }
-                .buttonStyle(BorderlessButtonStyle())
-            }
-        }
-        .padding(.vertical, 4)
-        .sheet(isPresented: $showingPlayer) {
-            if let localURL = module.localFileURL {
-                ModulePlayerSheet(url: localURL, title: module.title, moduleType: module.downloadType)
-            }
-        }
-    }
-    
-    private func iconForModuleType(_ type: ModuleType) -> String {
-        switch type {
-        case .document: return "doc.fill"
-        case .video: return "video.fill"
-        case .audio: return "music.note"
-        case .youtube: return "play.rectangle.fill"
-        case .scorm: return "archivebox.fill"
-        }
-    }
-    
-    private func formatFileSize(_ bytes: Int64) -> String {
-        let formatter = ByteCountFormatter()
-        formatter.countStyle = .file
-        return formatter.string(fromByteCount: bytes)
-    }
-}
-
-struct EmptyStateView: View {
-    let viewModel: DownloadViewModel
-    let modelContext: ModelContext
-    
-    var body: some View {
-        VStack(spacing: 20) {
-            Image(systemName: "arrow.down.circle")
-                .font(.system(size: 60))
-                .foregroundColor(.gray)
-            Text("No Courses Yet")
-                .font(.title2)
-                .foregroundColor(.secondary)
-            Text("Tap '+' to create sample courses")
-                .font(.caption)
-                .foregroundColor(.secondary)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .listRowBackground(Color.clear)
-    }
-}
-
-struct CourseRowView: View {
-    let course: Course
-    @ObservedObject var viewModel: DownloadViewModel
-    @State private var isExpanded = false
-    
-    var body: some View {
-        DisclosureGroup(isExpanded: $isExpanded) {
-            ForEach(course.modules) { module in
-                ModuleRowView(module: module, viewModel: viewModel)
-                    .padding(.vertical, 4)
-            }
-        } label: {
-            VStack(alignment: .leading, spacing: 8) {
-                Text(course.title)
-                    .font(.headline)
-                HStack {
-                    Label("\(course.modules.count) modules", systemImage: "doc.text")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    
-                    Spacer()
-                    
-                    // Download all button
-                    Button {
-                        Task {
-                            await viewModel.downloadCourse(course)
-                        }
-                    } label: {
-                        Image(systemName: "arrow.down.circle.fill")
-                            .foregroundColor(.blue)
-                    }
-                    .buttonStyle(BorderlessButtonStyle())
-                }
-            }
-            .padding(.vertical, 4)
-        }
-    }
-}
-
+// MARK: - Updated Module Row View
 struct ModuleRowView: View {
     let module: Module
     @ObservedObject var viewModel: DownloadViewModel
+    @EnvironmentObject var centralManager: CentralizedDownloadManager
     
     var downloadState: DownloadState {
-        viewModel.downloadStates[module.id] ?? .notDownloaded
+        centralManager.getDownloadState(for: module.id)
     }
     
     var downloadProgress: Double {
-        viewModel.downloadProgress[module.id] ?? 0.0
+        centralManager.getDownloadProgress(for: module.id)
     }
     
     var body: some View {
@@ -544,7 +326,225 @@ struct ModuleRowView: View {
     }
 }
 
+// MARK: - Other Views (EmptyStateView, CourseRowView, etc. remain the same)
+struct EmptyStateView: View {
+    let viewModel: DownloadViewModel
+    let modelContext: ModelContext
+    
+    var body: some View {
+        VStack(spacing: 20) {
+            Image(systemName: "arrow.down.circle")
+                .font(.system(size: 60))
+                .foregroundColor(.gray)
+            Text("No Courses Yet")
+                .font(.title2)
+                .foregroundColor(.secondary)
+            Text("Tap '+' to create sample courses")
+                .font(.caption)
+                .foregroundColor(.secondary)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .listRowBackground(Color.clear)
+    }
+}
 
+struct CourseRowView: View {
+    let course: Course
+    @ObservedObject var viewModel: DownloadViewModel
+    @State private var isExpanded = false
+    
+    var body: some View {
+        DisclosureGroup(isExpanded: $isExpanded) {
+            ForEach(course.modules) { module in
+                ModuleRowView(module: module, viewModel: viewModel)
+                    .padding(.vertical, 4)
+            }
+        } label: {
+            VStack(alignment: .leading, spacing: 8) {
+                Text(course.title)
+                    .font(.headline)
+                HStack {
+                    Label("\(course.modules.count) modules", systemImage: "doc.text")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    Spacer()
+                    
+                    // Download all button
+                    Button {
+                        Task {
+                            await viewModel.downloadCourse(course)
+                        }
+                    } label: {
+                        Image(systemName: "arrow.down.circle.fill")
+                            .foregroundColor(.blue)
+                    }
+                    .buttonStyle(BorderlessButtonStyle())
+                }
+            }
+            .padding(.vertical, 4)
+        }
+    }
+}
+
+struct AllCoursesView: View {
+    let courses: [Course]
+    @ObservedObject var viewModel: DownloadViewModel
+    let modelContext: ModelContext
+    
+    var body: some View {
+        NavigationStack {
+            List {
+                if courses.isEmpty {
+                    EmptyStateView(viewModel: viewModel, modelContext: modelContext)
+                } else {
+                    ForEach(courses) { course in
+                        CourseRowView(course: course, viewModel: viewModel)
+                    }
+                    .onDelete(perform: deleteCourses)
+                }
+            }
+            .navigationTitle("All Courses")
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Menu {
+                        Button("Add Demo Course") {
+                            viewModel.addDemoCourse(modelContext: modelContext)
+                        }
+                        
+                        Button("Add Multiple Demo Courses") {
+                            viewModel.addMultipleDemoCourses(modelContext: modelContext)
+                        }
+                    } label: {
+                        Image(systemName: "plus.circle.fill")
+                    }
+                }
+                
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Clear All") {
+                        Task {
+                            await viewModel.clearAllDownloads()
+                        }
+                    }
+                    .foregroundColor(.red)
+                }
+            }
+        }
+    }
+    
+    private func deleteCourses(offsets: IndexSet) {
+        withAnimation {
+            for index in offsets {
+                modelContext.delete(courses[index])
+            }
+        }
+    }
+}
+
+struct DownloadedEmptyStateView: View {
+    var body: some View {
+        VStack(spacing: 20) {
+            Image(systemName: "arrow.down.circle.dotted")
+                .font(.system(size: 60))
+                .foregroundColor(.gray)
+            Text("No Downloaded Courses")
+                .font(.title2)
+                .foregroundColor(.secondary)
+            Text("Download modules from the 'All Courses' tab to see them here")
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .listRowBackground(Color.clear)
+    }
+}
+
+struct DownloadedModuleRowView: View {
+    let module: Module
+    @ObservedObject var viewModel: DownloadViewModel
+    @State private var showingPlayer = false
+    
+    var body: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(module.title)
+                    .font(.subheadline)
+                
+                HStack {
+                    Image(systemName: iconForModuleType(module.downloadType))
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    Text(module.downloadType.rawValue)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    if let fileSize = module.fileSize {
+                        Text("• \(formatFileSize(fileSize))")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    Spacer()
+                    
+                    // Downloaded timestamp (if available)
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(.green)
+                        .font(.caption)
+                }
+            }
+            
+            Spacer()
+            
+            // Action buttons for downloaded module
+            HStack(spacing: 12) {
+                // View/Open button
+                Button {
+                    showingPlayer = true
+                } label: {
+                    Image(systemName: "eye.fill")
+                        .foregroundColor(.blue)
+                }
+                .buttonStyle(BorderlessButtonStyle())
+                
+                // Delete button
+                Button {
+                    Task {
+                        await viewModel.deleteDownload(itemId: module.id)
+                    }
+                } label: {
+                    Image(systemName: "trash.circle.fill")
+                        .foregroundColor(.red)
+                }
+                .buttonStyle(BorderlessButtonStyle())
+            }
+        }
+        .padding(.vertical, 4)
+        .sheet(isPresented: $showingPlayer) {
+            if let localURL = module.localFileURL {
+                ModulePlayerSheet(url: localURL, title: module.title, moduleType: module.downloadType)
+            }
+        }
+    }
+    
+    private func iconForModuleType(_ type: ModuleType) -> String {
+        switch type {
+        case .document: return "doc.fill"
+        case .video: return "video.fill"
+        case .audio: return "music.note"
+        case .youtube: return "play.rectangle.fill"
+        case .scorm: return "archivebox.fill"
+        }
+    }
+    
+    private func formatFileSize(_ bytes: Int64) -> String {
+        let formatter = ByteCountFormatter()
+        formatter.countStyle = .file
+        return formatter.string(fromByteCount: bytes)
+    }
+}
 
 #Preview {
     ContentView()
