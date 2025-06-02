@@ -32,7 +32,9 @@ class OnlineModuleManager: ObservableObject {
     private func initializeDownloadManager(modelContext: ModelContext) async {
         do {
             // Create storage
-            let storage = SwiftDataDownloadStorage(modelContainer: modelContext.container)
+            self.storage = SwiftDataDownloadStorage(modelContainer: modelContext.container)
+            
+            guard let storage = self.storage else { return }
             
             // Create configuration
             let configuration = DownloadConfiguration(
